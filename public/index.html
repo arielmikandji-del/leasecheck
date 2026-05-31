@@ -718,7 +718,7 @@ footer .logo-word b { color: var(--accent-bright); }
   const analyseBtn = document.getElementById('analyseBtn');
   let selectedFile = null;
 
-  dropzone.addEventListener('click', e => { e.preventDefault(); fileInput.click(); });
+
   dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
   dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
   dropzone.addEventListener('drop', e => {
