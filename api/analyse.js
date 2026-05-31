@@ -66,45 +66,51 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'POST');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  const { token, pdfBase64 } = req.body;
+  const { token, pdfBase64, tier } = req.body;
+  const isFree = tier === 'free';
 
-  if (!token || !pdfBase64) {
-    return res.status(400).json({ error: 'Missing token or PDF.' });
+  if (!pdfBase64) {
+    return res.status(400).json({ error: 'Missing PDF.' });
   }
 
-  // ── 1. Verify the Stripe payment token ────────────────────────────────────
-  let tokenData;
-  try {
-    const kvRes = await fetch(
-      `https://edge-config.vercel.com/${process.env.EDGE_CONFIG_ID}/item/token_${token}`,
-      { headers: { Authorization: `Bearer ${process.env.VERCEL_API_TOKEN}` } }
-    );
-    tokenData = await kvRes.json();
-  } catch {
-    return res.status(500).json({ error: 'Could not verify payment.' });
+  if (!isFree && !token) {
+    return res.status(400).json({ error: 'Missing payment token.' });
   }
 
-  if (!tokenData || tokenData.used) {
-    return res.status(403).json({ error: 'Invalid or already used payment token.' });
-  }
+  // ── 1. Verify the Stripe payment token (skip for free tier) ───────────────
+  if (!isFree) {
+    let tokenData;
+    try {
+      const kvRes = await fetch(
+        `https://edge-config.vercel.com/${process.env.EDGE_CONFIG_ID}/item/token_${token}`,
+        { headers: { Authorization: `Bearer ${process.env.VERCEL_API_TOKEN}` } }
+      );
+      tokenData = await kvRes.json();
+    } catch {
+      return res.status(500).json({ error: 'Could not verify payment.' });
+    }
 
-  // Token expires after 1 hour
-  const ONE_HOUR = 60 * 60 * 1000;
-  if (Date.now() - tokenData.created > ONE_HOUR) {
-    return res.status(403).json({ error: 'Payment session expired. Please contact support.' });
-  }
+    if (!tokenData || tokenData.used) {
+      return res.status(403).json({ error: 'Invalid or already used payment token.' });
+    }
 
-  // ── 2. Mark token as used immediately (prevents double-use) ───────────────
-  await fetch(`https://api.vercel.com/v1/edge-config/${process.env.EDGE_CONFIG_ID}/items`, {
-    method: 'PATCH',
-    headers: {
-      Authorization: `Bearer ${process.env.VERCEL_API_TOKEN}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      items: [{ operation: 'upsert', key: `token_${token}`, value: { used: true, created: tokenData.created } }]
-    })
-  });
+    const ONE_HOUR = 60 * 60 * 1000;
+    if (Date.now() - tokenData.created > ONE_HOUR) {
+      return res.status(403).json({ error: 'Payment session expired. Please contact support.' });
+    }
+
+    // ── 2. Mark token as used immediately (prevents double-use) ─────────────
+    await fetch(`https://api.vercel.com/v1/edge-config/${process.env.EDGE_CONFIG_ID}/items`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${process.env.VERCEL_API_TOKEN}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        items: [{ operation: 'upsert', key: `token_${token}`, value: { used: true, created: tokenData.created } }]
+      })
+    });
+  }
 
   // ── 3. Call Claude API with the PDF ───────────────────────────────────────
   let claudeResponse;
@@ -118,7 +124,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 4000,
+        max_tokens: isFree ? 1500 : 4000,
         system: SYSTEM_PROMPT,
         messages: [{
           role: 'user',
@@ -129,7 +135,9 @@ export default async function handler(req, res) {
             },
             {
               type: 'text',
-              text: 'Analyse this tenancy agreement and return the full JSON report. Check carefully for compliance with the Renters Rights Act 2025 which came into force on 1 May 2026.'
+              text: isFree
+                ? 'Analyse this tenancy agreement. Return ONLY the top 3 most serious red flags as clauses. Keep the response short — no negotiate_these section, and limit top_3_actions to brief one-liners. Return the full JSON structure but with only 3 clauses maximum.'
+                : 'Analyse this tenancy agreement and return the full JSON report. Check carefully for compliance with the Renters Rights Act 2025 which came into force on 1 May 2026.'
             }
           ]
         }]
