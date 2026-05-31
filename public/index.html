@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeaseCheck — Is your tenancy agreement legal under the Renters' Rights Act 2025?</title>
+<meta name="description" content="Upload your UK tenancy agreement. Get a plain-english risk report in 60 seconds. Know your rights under the Renters' Rights Act 2025 before you sign — or before your landlord tries anything.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green: #0F6E56;
+    --green-light: #E1F5EE;
+    --green-mid: #1D9E75;
+    --red: #A32D2D;
+    --red-light: #FCEBEB;
+    --amber: #854F0B;
+    --amber-light: #FAEEDA;
+    --text: #1a1a1a;
+    --text-muted: #666;
+    --border: rgba(0,0,0,0.1);
+    --surface: #f8f7f4;
+    --white: #ffffff;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    color: var(--text);
+    background: var(--white);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* NAV */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+    border-bottom: 0.5px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(8px);
+    z-index: 100;
+  }
+
+  .logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: var(--text);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .logo-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--green-mid);
+    border-radius: 50%;
+  }
+
+  .nav-cta {
+    background: var(--text);
+    color: var(--white);
+    border: none;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    text-decoration: none;
+  }
+
+  /* HERO */
+  .hero {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 5rem 2rem 4rem;
+    text-align: center;
+  }
+
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--red-light);
+    color: var(--red);
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 12px;
+    border-radius: 100px;
+    margin-bottom: 1.5rem;
+  }
+
+  .hero-eyebrow::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--red);
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    line-height: 1.15;
+    color: var(--text);
+    margin-bottom: 1.25rem;
+    font-weight: 400;
+  }
+
+  h1 em {
+    font-style: normal;
+    color: var(--green);
+  }
+
+  .hero-sub {
+    font-size: 17px;
+    color: var(--text-muted);
+    max-width: 540px;
+    margin: 0 auto 2.5rem;
+    line-height: 1.65;
+  }
+
+  /* UPLOAD BOX */
+  .upload-zone {
+    background: var(--surface);
+    border: 1.5px dashed rgba(0,0,0,0.15);
+    border-radius: 16px;
+    padding: 3rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    max-width: 520px;
+    margin: 0 auto 1rem;
+  }
+
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: var(--green-mid);
+    background: var(--green-light);
+  }
+
+  .upload-icon {
+    width: 48px;
+    height: 48px;
+    background: var(--white);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+  }
+
+  .upload-icon svg { width: 24px; height: 24px; stroke: var(--green); fill: none; stroke-width: 1.5; stroke-linecap: round; }
+
+  .upload-title { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+  .upload-sub { font-size: 13px; color: var(--text-muted); }
+
+  input[type="file"] { display: none; }
+
+  .file-selected {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    background: var(--green-light);
+    border-radius: 8px;
+    padding: 10px 14px;
+    max-width: 520px;
+    margin: 0 auto .75rem;
+    font-size: 13px;
+    color: var(--green);
+    font-weight: 500;
+  }
+
+  .file-selected.visible { display: flex; }
+
+  /* CTA BUTTON */
+  .cta-wrap { text-align: center; margin-bottom: .5rem; }
+
+  .cta-btn {
+    background: var(--text);
+    color: var(--white);
+    border: none;
+    padding: 14px 32px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    transition: opacity .15s, transform .1s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .cta-btn:hover { opacity: .88; }
+  .cta-btn:active { transform: scale(.98); }
+  .cta-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+  .price-note { font-size: 13px; color: var(--text-muted); text-align: center; margin-top: 8px; }
+  .price-note strong { color: var(--text); }
+
+  /* TRUST STRIP */
+  .trust-strip {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 2rem;
+    border-top: 0.5px solid var(--border);
+    border-bottom: 0.5px solid var(--border);
+    margin: 3rem 0;
+  }
+
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .trust-item svg { width: 16px; height: 16px; stroke: var(--green-mid); fill: none; stroke-width: 2; }
+
+  /* WHAT YOU GET */
+  .section { max-width: 760px; margin: 0 auto; padding: 2rem 2rem; }
+  .section-label { font-size: 11px; font-weight: 500; letter-spacing: .1em; text-transform: uppercase; color: #999; margin-bottom: 1rem; }
+  h2 { font-family: 'DM Serif Display', serif; font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 400; margin-bottom: 1rem; }
+
+  .clauses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin: 1.5rem 0;
+  }
+
+  .clause-card {
+    border: 0.5px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+  }
+
+  .clause-tag {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    display: inline-block;
+  }
+
+  .tag-red { background: var(--red-light); color: var(--red); }
+  .tag-amber { background: var(--amber-light); color: var(--amber); }
+  .tag-green { background: var(--green-light); color: var(--green); }
+
+  .clause-name { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+  .clause-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+  /* PRICING */
+  .pricing { background: var(--surface); padding: 3rem 2rem; }
+  .pricing-inner { max-width: 680px; margin: 0 auto; }
+
+  .price-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-top: 1.5rem;
+  }
+
+  .price-card {
+    background: var(--white);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    text-align: center;
+  }
+
+  .price-card.featured {
+    border: 2px solid var(--green-mid);
+  }
+
+  .featured-tag {
+    font-size: 11px;
+    background: var(--green-light);
+    color: var(--green);
+    padding: 3px 10px;
+    border-radius: 100px;
+    display: inline-block;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .price-amount { font-family: 'DM Serif Display', serif; font-size: 2rem; font-weight: 400; }
+  .price-name { font-size: 13px; color: var(--text-muted); margin: 4px 0 10px; }
+  .price-features { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+
+  .price-card-btn {
+    display: block;
+    margin-top: 1rem;
+    padding: 9px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+    transition: opacity .15s;
+  }
+
+  .btn-dark { background: var(--text); color: var(--white); border: none; }
+  .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  .price-card-btn:hover { opacity: .8; }
+
+  /* HOW IT WORKS */
+  .steps { display: flex; flex-direction: column; gap: 0; max-width: 480px; }
+  .step { display: flex; gap: 1rem; padding-bottom: 1.5rem; position: relative; }
+  .step:not(:last-child)::after { content: ''; position: absolute; left: 15px; top: 32px; bottom: 0; width: 1px; background: var(--border); }
+  .step-num { width: 32px; height: 32px; border-radius: 50%; background: var(--text); color: var(--white); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; flex-shrink: 0; }
+  .step-body { padding-top: 4px; }
+  .step-title { font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+  .step-desc { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+
+  /* FAQ */
+  .faq-item { border-bottom: 0.5px solid var(--border); padding: 1.25rem 0; }
+  .faq-q { font-size: 15px; font-weight: 500; margin-bottom: 6px; }
+  .faq-a { font-size: 14px; color: var(--text-muted); line-height: 1.6; }
+
+  /* FOOTER */
+  footer {
+    border-top: 0.5px solid var(--border);
+    padding: 2rem;
+    text-align: center;
+    font-size: 12px;
+    color: #999;
+    line-height: 1.7;
+  }
+
+  /* SAMPLE REPORT PREVIEW */
+  .report-preview {
+    background: var(--white);
+    border: 0.5px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    margin: 2rem 0;
+  }
+
+  .report-header { background: var(--red-light); padding: 1rem 1.25rem; border-bottom: 0.5px solid var(--border); }
+  .report-header-label { font-size: 11px; font-weight: 500; color: var(--red); text-transform: uppercase; letter-spacing: .06em; }
+  .report-header-title { font-size: 15px; font-weight: 500; color: #1a1a1a; margin-top: 4px; }
+
+  .report-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 1.25rem; border-bottom: 0.5px solid var(--border); }
+  .report-row:last-child { border-bottom: none; }
+  .risk-pill { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; margin-top: 2px; }
+  .rp-red { background: var(--red-light); color: var(--red); }
+  .rp-amber { background: var(--amber-light); color: var(--amber); }
+  .rp-green { background: var(--green-light); color: var(--green); }
+  .report-clause-name { font-size: 13px; font-weight: 500; margin-bottom: 3px; }
+  .report-clause-text { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+  /* LOADING STATE */
+  .loading {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 3rem 2rem;
+    text-align: center;
+  }
+
+  .loading.visible { display: flex; }
+
+  .spinner {
+    width: 32px;
+    height: 32px;
+    border: 2px solid var(--border);
+    border-top-color: var(--green-mid);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">
+    <div class="logo-dot"></div>
+    LeaseCheck
+  </a>
+  <a href="#pricing" class="nav-cta">Check my lease — £9.99</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-eyebrow">UK rental law changed on 1 May 2026</div>
+
+  <h1>Is your tenancy agreement <em>legal</em> under the new Renters' Rights Act?</h1>
+
+  <p class="hero-sub">Upload your lease. Get a plain-english risk report in 60 seconds. Know exactly what your landlord can and cannot do — before you sign or before they try anything.</p>
+
+  <!-- UPLOAD -->
+  <div class="upload-zone" id="uploadZone">
+    <div class="upload-icon">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="12" x2="12" y2="18"/><polyline points="9 15 12 12 15 15"/></svg>
+    </div>
+    <div class="upload-title">Drop your tenancy agreement here</div>
+    <div class="upload-sub">PDF only · Max 20MB · Your file is never stored</div>
+    <input type="file" id="fileInput" accept=".pdf">
+  </div>
+
+  <div class="file-selected" id="fileSelected">
+    <svg style="width:16px;height:16px;stroke:var(--green);fill:none;stroke-width:2;flex-shrink:0" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    <span id="fileName">your-lease.pdf</span>
+  </div>
+
+  <div class="cta-wrap">
+    <button class="cta-btn" id="analyseBtn" disabled>
+      <svg style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Analyse my lease
+    </button>
+  </div>
+  <div class="price-note">One-time payment of <strong>£9.99</strong> · Instant report · No account needed</div>
+</section>
+
+<!-- TRUST STRIP -->
+<div class="trust-strip">
+  <div class="trust-item">
+    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    Updated for Renters' Rights Act 2025
+  </div>
+  <div class="trust-item">
+    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    Plain English — no legal jargon
+  </div>
+  <div class="trust-item">
+    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    Your PDF is never stored or shared
+  </div>
+  <div class="trust-item">
+    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+    Results in under 60 seconds
+  </div>
+</div>
+
+<!-- SAMPLE REPORT -->
+<section class="section">
+  <div class="section-label">Sample report</div>
+  <h2>Here's what you get</h2>
+  <p style="font-size:15px;color:var(--text-muted);margin-bottom:1.5rem">Every clause of your lease, checked against the new law. Red flags, plain English explanations, and exactly what to say to your landlord.</p>
+
+  <div class="report-preview">
+    <div class="report-header">
+      <div class="report-header-label">Overall risk — High</div>
+      <div class="report-header-title">This lease contains clauses that are now illegal under the Renters' Rights Act 2025 and should not be signed as written.</div>
+    </div>
+    <div class="report-row">
+      <span class="risk-pill rp-red">High risk</span>
+      <div>
+        <div class="report-clause-name">Section 21 reference</div>
+        <div class="report-clause-text">Clause 14 references the landlord's right to serve a Section 21 notice. Section 21 was abolished on 1 May 2026 — this clause is now void and unenforceable. Your landlord cannot use this to evict you.</div>
+      </div>
+    </div>
+    <div class="report-row">
+      <span class="risk-pill rp-red">High risk</span>
+      <div>
+        <div class="report-clause-name">Fixed-term clause</div>
+        <div class="report-clause-text">This agreement specifies a 12-month fixed term. Under the RRA 2025, all new tenancies must be periodic (rolling). A fixed-term clause in a new agreement is now illegal.</div>
+      </div>
+    </div>
+    <div class="report-row">
+      <span class="risk-pill rp-amber">Review needed</span>
+      <div>
+        <div class="report-clause-name">Rent increase mechanism</div>
+        <div class="report-clause-text">Rent increases can only happen once per year with proper prescribed notice. This clause does not follow the new process — ask your landlord to update it before signing.</div>
+      </div>
+    </div>
+    <div class="report-row">
+      <span class="risk-pill rp-green">Compliant</span>
+      <div>
+        <div class="report-clause-name">Deposit protection</div>
+        <div class="report-clause-text">The deposit will be held in a government-approved scheme within 30 days. This clause is compliant with current law.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section">
+  <div class="section-label">How it works</div>
+  <h2>Three steps, 60 seconds</h2>
+  <br>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <div class="step-title">Upload your lease</div>
+        <div class="step-desc">PDF format, any standard UK tenancy agreement. ASTs, new periodic tenancies, renewal letters — all supported.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <div class="step-title">Pay £9.99</div>
+        <div class="step-desc">One-time payment via Stripe. No account, no subscription, no hidden fees.</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <div class="step-title">Get your report</div>
+        <div class="step-desc">Every clause checked against the Renters' Rights Act 2025. Red, amber, green. Plain English. What to do next.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHAT WE CHECK -->
+<section class="section">
+  <div class="section-label">What we check</div>
+  <h2>Every clause that matters</h2>
+  <div class="clauses-grid">
+    <div class="clause-card">
+      <span class="clause-tag tag-red">Critical</span>
+      <div class="clause-name">Section 21 / eviction rights</div>
+      <div class="clause-desc">Illegal since 1 May 2026. Flagged immediately if present.</div>
+    </div>
+    <div class="clause-card">
+      <span class="clause-tag tag-red">Critical</span>
+      <div class="clause-name">Fixed-term clauses</div>
+      <div class="clause-desc">New tenancies must be periodic. Fixed-term is now void.</div>
+    </div>
+    <div class="clause-card">
+      <span class="clause-tag tag-amber">Review</span>
+      <div class="clause-name">Rent increase process</div>
+      <div class="clause-desc">Must follow new annual process with prescribed notice.</div>
+    </div>
+    <div class="clause-card">
+      <span class="clause-tag tag-amber">Review</span>
+      <div class="clause-name">Notice periods</div>
+      <div class="clause-desc">4 months required for sale, family move-in, or own use.</div>
+    </div>
+    <div class="clause-card">
+      <span class="clause-tag tag-amber">Review</span>
+      <div class="clause-name">Pets policy</div>
+      <div class="clause-desc">Landlords can no longer unreasonably refuse pets.</div>
+    </div>
+    <div class="clause-card">
+      <span class="clause-tag tag-green">Standard</span>
+      <div class="clause-name">Deposit protection</div>
+      <div class="clause-desc">Scheme, timeline, and return conditions checked.</div>
+    </div>
+    <div class="clause-card">
+      <span class="clause-tag tag-green">Standard</span>
+      <div class="clause-name">Repair obligations</div>
+      <div class="clause-desc">Landlord responsibilities under the Decent Homes Standard.</div>
+    </div>
+    <div class="clause-card">
+      <span class="clause-tag tag-amber">Review</span>
+      <div class="clause-name">Early exit clauses</div>
+      <div class="clause-desc">Break fees and notice requirements reviewed for fairness.</div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="pricing">
+  <div class="pricing-inner">
+    <div class="section-label">Pricing</div>
+    <h2>Simple, one-time pricing</h2>
+    <p style="font-size:15px;color:var(--text-muted);margin-bottom:0">No subscription. Pay once, get your report. Compare that to £200/hour for a solicitor.</p>
+    <div class="price-grid">
+      <div class="price-card">
+        <div class="price-amount">£4.99</div>
+        <div class="price-name">Quick scan</div>
+        <div class="price-features">3 key risk flags only<br>Red / amber / green summary<br>No clause detail</div>
+        <a href="YOUR_STRIPE_LINK_499" class="price-card-btn btn-outline">Get quick scan</a>
+      </div>
+      <div class="price-card featured">
+        <div class="featured-tag">Most popular</div>
+        <div class="price-amount">£9.99</div>
+        <div class="price-name">Full report</div>
+        <div class="price-features">All clauses analysed<br>RRA 2025 compliance check<br>Plain English explanations<br>Top 3 actions + negotiate guide</div>
+        <a href="YOUR_STRIPE_LINK_999" class="price-card-btn btn-dark">Get full report</a>
+      </div>
+      <div class="price-card">
+        <div class="price-amount">£19.99</div>
+        <div class="price-name">Landlord pack</div>
+        <div class="price-features">Full report for tenant<br>Landlord compliance view<br>3 reports bundled<br>Good for letting agents</div>
+        <a href="YOUR_STRIPE_LINK_1999" class="price-card-btn btn-outline">Get landlord pack</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section">
+  <div class="section-label">Questions</div>
+  <h2>Frequently asked</h2>
+  <br>
+  <div class="faq-item">
+    <div class="faq-q">Is this legal advice?</div>
+    <div class="faq-a">No. LeaseCheck is an informational tool that analyses your lease against publicly available UK law. It is not a substitute for advice from a qualified solicitor. For complex situations, contact Shelter or a housing solicitor.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Does the Renters' Rights Act affect my existing lease?</div>
+    <div class="faq-a">Yes. The Act came into force on 1 May 2026. Certain provisions — including the abolition of Section 21 — now apply to all existing tenancies, not just new ones. Upload your current lease to find out what has changed for you.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Is my PDF stored or shared?</div>
+    <div class="faq-a">No. Your PDF is sent directly to the analysis engine and is never stored, logged, or shared. We do not retain any copy of your document after the report is generated.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">What types of tenancy does this cover?</div>
+    <div class="faq-a">LeaseCheck covers private rented sector agreements in England: ASTs (signed before May 2026), new periodic tenancies, and renewal letters. It does not currently cover Scotland, Wales, or social housing.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Can I get a refund if I'm not happy?</div>
+    <div class="faq-a">Yes. If your report fails to generate or you feel it hasn't analysed your document correctly, contact us within 24 hours for a full refund.</div>
+  </div>
+</section>
+
+<!-- BOTTOM CTA -->
+<section style="background:var(--text);padding:4rem 2rem;text-align:center">
+  <h2 style="font-family:'DM Serif Display',serif;font-weight:400;color:#fff;font-size:clamp(1.5rem,3vw,2rem);margin-bottom:1rem">Know your rights before you sign</h2>
+  <p style="color:rgba(255,255,255,.6);font-size:15px;margin-bottom:2rem;max-width:440px;margin-left:auto;margin-right:auto">The law changed. Most landlords haven't updated their contracts. Find out where you stand in 60 seconds.</p>
+  <a href="#pricing" style="background:#fff;color:var(--text);padding:14px 32px;border-radius:10px;font-size:16px;font-weight:500;text-decoration:none;display:inline-block">Check my lease — from £4.99</a>
+</section>
+
+<footer>
+  <p>LeaseCheck is an informational service. Not legal advice. Laws may have changed since this report was generated.</p>
+  <p style="margin-top:6px">For free housing advice contact <a href="https://www.shelter.org.uk" style="color:#666">Shelter</a> · <a href="https://www.citizensadvice.org.uk" style="color:#666">Citizens Advice</a></p>
+  <p style="margin-top:6px">© 2026 LeaseCheck · Built in London</p>
+</footer>
+
+<script>
+  const zone = document.getElementById('uploadZone');
+  const input = document.getElementById('fileInput');
+  const btn = document.getElementById('analyseBtn');
+  const fileSelected = document.getElementById('fileSelected');
+  const fileName = document.getElementById('fileName');
+  let selectedFile = null;
+
+  zone.addEventListener('click', () => input.click());
+
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    const f = e.dataTransfer.files[0];
+    if (f && f.type === 'application/pdf') handleFile(f);
+  });
+
+  input.addEventListener('change', () => {
+    if (input.files[0]) handleFile(input.files[0]);
+  });
+
+  function handleFile(f) {
+    selectedFile = f;
+    fileName.textContent = f.name;
+    fileSelected.classList.add('visible');
+    btn.disabled = false;
+  }
+
+  btn.addEventListener('click', () => {
+    if (!selectedFile) return;
+    // REPLACE with your Stripe Payment Link — pass file via sessionStorage after payment
+    // For MVP: redirect to Stripe, then on success page trigger analysis
+    window.location.href = 'YOUR_STRIPE_LINK_999';
+  });
+</script>
+</body>
+</html>

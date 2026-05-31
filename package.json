@@ -1,0 +1,11 @@
+{
+  "name": "leasecheck",
+  "version": "1.0.0",
+  "description": "UK tenancy agreement analyser — Renters Rights Act 2025",
+  "dependencies": {
+    "stripe": "^14.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

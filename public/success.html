@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analysing your lease — LeaseCheck</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: #f8f7f4; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; color: #1a1a1a; }
+  .card { background: #fff; border-radius: 16px; border: 0.5px solid rgba(0,0,0,0.1); padding: 2.5rem; max-width: 600px; width: 100%; }
+  h1 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 1.75rem; margin-bottom: .75rem; }
+  .sub { color: #666; font-size: 15px; line-height: 1.6; margin-bottom: 1.5rem; }
+  .spinner-wrap { display: flex; align-items: center; gap: 12px; padding: 1rem 0; }
+  .spinner { width: 24px; height: 24px; border: 2px solid rgba(0,0,0,0.1); border-top-color: #1D9E75; border-radius: 50%; animation: spin .7s linear infinite; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .status-text { font-size: 14px; color: #666; }
+  #report { margin-top: 1.5rem; }
+  .risk-header { border-radius: 10px; padding: 1.25rem; margin-bottom: 1.25rem; }
+  .risk-red { background: #FCEBEB; }
+  .risk-amber { background: #FAEEDA; }
+  .risk-green { background: #E1F5EE; }
+  .risk-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+  .risk-label-red { color: #A32D2D; }
+  .risk-label-amber { color: #854F0B; }
+  .risk-label-green { color: #0F6E56; }
+  .verdict { font-size: 16px; font-weight: 500; color: #1a1a1a; margin-bottom: 6px; }
+  .summary-text { font-size: 13px; color: #555; line-height: 1.6; }
+  .section-lbl { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: .08em; color: #999; margin: 1.25rem 0 .75rem; }
+  .clause { border: 0.5px solid rgba(0,0,0,0.08); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 8px; }
+  .clause-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .clause-name { font-size: 14px; font-weight: 500; }
+  .pill { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 4px; }
+  .pill-red { background: #FCEBEB; color: #A32D2D; }
+  .pill-amber { background: #FAEEDA; color: #854F0B; }
+  .pill-green { background: #E1F5EE; color: #0F6E56; }
+  .clause-plain { font-size: 13px; color: #444; line-height: 1.5; margin-bottom: 6px; }
+  .clause-rra { font-size: 12px; color: #A32D2D; background: #FCEBEB; padding: 6px 10px; border-radius: 6px; margin-bottom: 6px; line-height: 1.5; }
+  .clause-action { font-size: 12px; color: #0F6E56; background: #E1F5EE; padding: 6px 10px; border-radius: 6px; line-height: 1.5; }
+  .action-list { list-style: none; }
+  .action-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid rgba(0,0,0,0.07); font-size: 14px; line-height: 1.5; }
+  .action-item:last-child { border-bottom: none; }
+  .action-num { font-weight: 500; color: #1D9E75; flex-shrink: 0; }
+  .disclaimer { font-size: 11px; color: #999; line-height: 1.6; margin-top: 1.5rem; padding-top: 1rem; border-top: 0.5px solid rgba(0,0,0,0.08); }
+  .error-box { background: #FCEBEB; border-radius: 10px; padding: 1.25rem; color: #A32D2D; font-size: 14px; line-height: 1.6; }
+  .download-bar { display: flex; gap: 10px; margin-bottom: 1.5rem; }
+  .dl-btn { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; border-radius: 10px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; transition: opacity .15s, transform .1s; border: none; text-decoration: none; }
+  .dl-btn:hover { opacity: .85; }
+  .dl-btn:active { transform: scale(.98); }
+  .dl-primary { background: #1a1a1a; color: #fff; }
+  .dl-secondary { background: transparent; color: #1a1a1a; border: 1px solid rgba(0,0,0,0.12); }
+  .upload-again { display: inline-block; margin-top: 1rem; padding: 10px 20px; background: #1a1a1a; color: #fff; border-radius: 8px; font-size: 14px; font-weight: 500; text-decoration: none; }
+
+  /* Upload area on success page (user brings their PDF here) */
+  .upload-zone { border: 1.5px dashed rgba(0,0,0,0.15); border-radius: 12px; padding: 2rem; text-align: center; cursor: pointer; background: #f8f7f4; margin-bottom: 1rem; transition: border-color .2s, background .2s; }
+  .upload-zone:hover { border-color: #1D9E75; background: #E1F5EE; }
+  .upload-zone-label { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+  .upload-zone-sub { font-size: 12px; color: #666; }
+  input[type="file"] { display: none; }
+  .file-name { font-size: 13px; color: #0F6E56; margin-bottom: 1rem; display: none; }
+  .analyse-btn { width: 100%; padding: 13px; background: #1a1a1a; color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 500; cursor: pointer; font-family: inherit; transition: opacity .15s; }
+  .analyse-btn:hover { opacity: .85; }
+  .analyse-btn:disabled { opacity: .4; cursor: not-allowed; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div id="uploadStep">
+    <h1>Payment confirmed</h1>
+    <p class="sub">Now upload your tenancy agreement to get your report.</p>
+    <div class="upload-zone" id="zone">
+      <div class="upload-zone-label">Drop your PDF here or click to upload</div>
+      <div class="upload-zone-sub">PDF only · Max 20MB · Never stored</div>
+      <input type="file" id="fileInput" accept=".pdf">
+    </div>
+    <div class="file-name" id="fileName"></div>
+    <button class="analyse-btn" id="analyseBtn" disabled>Analyse my lease</button>
+  </div>
+
+  <div id="loadingStep" style="display:none">
+    <h1>Analysing your lease</h1>
+    <p class="sub">Checking every clause against the Renters' Rights Act 2025. This takes about 30 seconds.</p>
+    <div class="spinner-wrap">
+      <div class="spinner"></div>
+      <span class="status-text" id="statusText">Reading your document...</span>
+    </div>
+  </div>
+
+  <div id="reportStep" style="display:none">
+    <div id="report"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js"></script>
+<script>
+  // Get Stripe session ID from URL — Stripe adds ?session_id=xxx automatically
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('session_id');
+
+  if (!token) {
+    document.getElementById('uploadStep').innerHTML = '<div class="error-box">No payment found. <a href="/" style="color:inherit">Go back and try again.</a></div>';
+  }
+
+  const zone = document.getElementById('zone');
+  const fileInput = document.getElementById('fileInput');
+  const analyseBtn = document.getElementById('analyseBtn');
+  const fileNameEl = document.getElementById('fileName');
+  let selectedFile = null;
+
+  zone.addEventListener('click', () => fileInput.click());
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.style.borderColor = '#1D9E75'; });
+  zone.addEventListener('dragleave', () => zone.style.borderColor = '');
+  zone.addEventListener('drop', e => { e.preventDefault(); zone.style.borderColor = ''; if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]); });
+  fileInput.addEventListener('change', () => { if (fileInput.files[0]) handleFile(fileInput.files[0]); });
+
+  function handleFile(f) {
+    if (!f.name.endsWith('.pdf')) { alert('Please upload a PDF file.'); return; }
+    if (f.size > 20 * 1024 * 1024) { alert('File too large. Max 20MB.'); return; }
+    selectedFile = f;
+    fileNameEl.textContent = f.name;
+    fileNameEl.style.display = 'block';
+    analyseBtn.disabled = false;
+  }
+
+  const statusMessages = [
+    'Reading your document...',
+    'Identifying clause types...',
+    'Checking against Renters\u2019 Rights Act 2025...',
+    'Flagging Section 21 references...',
+    'Assessing rent increase clauses...',
+    'Building your report...'
+  ];
+
+  analyseBtn.addEventListener('click', async () => {
+    if (!selectedFile || !token) return;
+
+    document.getElementById('uploadStep').style.display = 'none';
+    document.getElementById('loadingStep').style.display = 'block';
+
+    // Rotate status messages
+    let i = 0;
+    const statusEl = document.getElementById('statusText');
+    const interval = setInterval(() => {
+      i = (i + 1) % statusMessages.length;
+      statusEl.textContent = statusMessages[i];
+    }, 4000);
+
+    // Convert PDF to base64
+    const base64 = await new Promise((res, rej) => {
+      const r = new FileReader();
+      r.onload = () => res(r.result.split(',')[1]);
+      r.onerror = () => rej(new Error('Failed to read file'));
+      r.readAsDataURL(selectedFile);
+    });
+
+    try {
+      const response = await fetch('/api/analyse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, pdfBase64: base64 })
+      });
+
+      clearInterval(interval);
+      const data = await response.json();
+
+      if (!data.success) throw new Error(data.error || 'Analysis failed');
+
+      renderReport(data.report);
+    } catch (err) {
+      clearInterval(interval);
+      document.getElementById('loadingStep').style.display = 'none';
+      document.getElementById('reportStep').style.display = 'block';
+      document.getElementById('report').innerHTML = `
+        <div class="error-box">
+          <strong>Something went wrong.</strong><br>${err.message}<br>
+          <a href="mailto:support@leasecheck.co.uk" class="upload-again">Contact support</a>
+        </div>`;
+    }
+  });
+
+  function renderReport(r) {
+    document.getElementById('loadingStep').style.display = 'none';
+    document.getElementById('reportStep').style.display = 'block';
+
+    const riskClass = { red: 'risk-red', amber: 'risk-amber', green: 'risk-green' };
+    const riskLabelClass = { red: 'risk-label-red', amber: 'risk-label-amber', green: 'risk-label-green' };
+    const riskText = { red: 'High risk', amber: 'Review needed', green: 'Compliant' };
+    const pillClass = { red: 'pill-red', amber: 'pill-amber', green: 'pill-green' };
+
+    const clausesHtml = r.clauses.map(c => `
+      <div class="clause">
+        <div class="clause-top">
+          <span class="clause-name">${c.name}</span>
+          <span class="pill ${pillClass[c.risk]}">${riskText[c.risk]}</span>
+        </div>
+        <div class="clause-plain">${c.plain_english}</div>
+        ${c.rra_issue ? `<div class="clause-rra">RRA 2025: ${c.rra_issue}</div>` : ''}
+        <div class="clause-action">→ ${c.what_to_do}</div>
+      </div>`).join('');
+
+    const actionsHtml = r.top_3_actions.map((a, i) => `
+      <li class="action-item"><span class="action-num">${i + 1}.</span><span>${a}</span></li>`).join('');
+
+    const negotiateHtml = r.negotiate_these?.length ? `
+      <div class="section-lbl">Negotiate these</div>
+      ${r.negotiate_these.map(n => `
+        <div class="clause">
+          <div class="clause-name" style="margin-bottom:4px">${n.clause}</div>
+          <div class="clause-plain" style="font-style:italic">"${n.suggested_wording}"</div>
+        </div>`).join('')}` : '';
+
+    document.getElementById('report').innerHTML = `
+      <div class="download-bar">
+        <button class="dl-btn dl-primary" onclick="downloadPDF()">
+          <svg style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download PDF report
+        </button>
+        <button class="dl-btn dl-secondary" onclick="window.print()">
+          <svg style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Print
+        </button>
+      </div>
+      <div class="risk-header ${riskClass[r.overall_risk]}">
+        <div class="risk-label ${riskLabelClass[r.overall_risk]}">Overall — ${riskText[r.overall_risk]}</div>
+        <div class="verdict">${r.rra_compliance_verdict}</div>
+        <div class="summary-text">${r.summary}</div>
+      </div>
+      <div class="section-lbl">Clause by clause</div>
+      ${clausesHtml}
+      <div class="section-lbl">Your top 3 actions</div>
+      <ul class="action-list">${actionsHtml}</ul>
+      ${negotiateHtml}
+      <div class="disclaimer">${r.disclaimer}</div>`;
+
+    // Store report data globally for PDF generation
+    window._leaseReport = r;
+  }
+
+  // ── PDF Generation with jsPDF ──────────────────────────────────────────────
+  function downloadPDF() {
+    const r = window._leaseReport;
+    if (!r) return;
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const W = 210, M = 18, CW = W - 2 * M;
+    let y = M;
+
+    const riskLabel = { red: 'HIGH RISK', amber: 'REVIEW NEEDED', green: 'COMPLIANT' };
+    const riskRGB = { red: [162,45,45], amber: [133,79,11], green: [15,110,86] };
+    const riskBgRGB = { red: [252,235,235], amber: [250,238,218], green: [225,245,238] };
+
+    function addPage() { doc.addPage(); y = M; }
+    function checkSpace(needed) { if (y + needed > 280) addPage(); }
+
+    // Header band
+    doc.setFillColor(...riskBgRGB[r.overall_risk]);
+    doc.roundedRect(M, y, CW, 8, 2, 2, 'F');
+    doc.setFontSize(8); doc.setTextColor(...riskRGB[r.overall_risk]);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`OVERALL — ${riskLabel[r.overall_risk]}`, M + 4, y + 5.5);
+    y += 12;
+
+    // Verdict
+    doc.setFontSize(14); doc.setTextColor(26, 26, 26);
+    doc.setFont('helvetica', 'bold');
+    const verdictLines = doc.splitTextToSize(r.rra_compliance_verdict, CW);
+    doc.text(verdictLines, M, y); y += verdictLines.length * 6 + 2;
+
+    // Summary
+    doc.setFontSize(10); doc.setTextColor(85, 85, 85);
+    doc.setFont('helvetica', 'normal');
+    const summaryLines = doc.splitTextToSize(r.summary, CW);
+    doc.text(summaryLines, M, y); y += summaryLines.length * 5 + 8;
+
+    // Divider
+    doc.setDrawColor(230, 230, 230); doc.line(M, y, W - M, y); y += 6;
+
+    // Clause by clause
+    doc.setFontSize(8); doc.setTextColor(153, 153, 153);
+    doc.setFont('helvetica', 'bold');
+    doc.text('CLAUSE BY CLAUSE', M, y); y += 6;
+
+    r.clauses.forEach(c => {
+      const plainLines = doc.splitTextToSize(c.plain_english, CW - 4);
+      const rraLines = c.rra_issue ? doc.splitTextToSize('RRA 2025: ' + c.rra_issue, CW - 8) : [];
+      const actionLines = doc.splitTextToSize(c.what_to_do, CW - 8);
+      const blockH = 14 + plainLines.length * 4.5 + (rraLines.length ? rraLines.length * 4 + 6 : 0) + actionLines.length * 4 + 10;
+      checkSpace(blockH);
+
+      // Clause name + pill
+      doc.setFontSize(10); doc.setTextColor(26, 26, 26);
+      doc.setFont('helvetica', 'bold');
+      doc.text(c.name, M, y + 4);
+      // Risk pill
+      const pillW = doc.getTextWidth(riskLabel[c.risk]) + 6;
+      doc.setFillColor(...riskBgRGB[c.risk]);
+      doc.roundedRect(W - M - pillW - 2, y, pillW + 4, 6, 1.5, 1.5, 'F');
+      doc.setFontSize(7); doc.setTextColor(...riskRGB[c.risk]);
+      doc.text(riskLabel[c.risk], W - M - pillW, y + 4.2);
+      y += 8;
+
+      // Plain english
+      doc.setFontSize(9); doc.setTextColor(68, 68, 68);
+      doc.setFont('helvetica', 'normal');
+      doc.text(plainLines, M + 2, y); y += plainLines.length * 4.5 + 2;
+
+      // RRA issue
+      if (rraLines.length) {
+        doc.setFillColor(252, 235, 235);
+        doc.roundedRect(M + 2, y - 1, CW - 4, rraLines.length * 4 + 4, 1.5, 1.5, 'F');
+        doc.setFontSize(8); doc.setTextColor(163, 45, 45);
+        doc.text(rraLines, M + 5, y + 3); y += rraLines.length * 4 + 6;
+      }
+
+      // Action
+      doc.setFillColor(225, 245, 238);
+      doc.roundedRect(M + 2, y - 1, CW - 4, actionLines.length * 4 + 4, 1.5, 1.5, 'F');
+      doc.setFontSize(8); doc.setTextColor(15, 110, 86);
+      doc.text(actionLines, M + 5, y + 3); y += actionLines.length * 4 + 8;
+    });
+
+    // Top 3 actions
+    checkSpace(30);
+    doc.setDrawColor(230, 230, 230); doc.line(M, y, W - M, y); y += 6;
+    doc.setFontSize(8); doc.setTextColor(153, 153, 153);
+    doc.setFont('helvetica', 'bold');
+    doc.text('YOUR TOP 3 ACTIONS', M, y); y += 6;
+    r.top_3_actions.forEach((a, i) => {
+      const lines = doc.splitTextToSize(a, CW - 10);
+      checkSpace(lines.length * 5 + 4);
+      doc.setFontSize(9); doc.setTextColor(29, 158, 117);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${i + 1}.`, M, y);
+      doc.setTextColor(51, 51, 51);
+      doc.setFont('helvetica', 'normal');
+      doc.text(lines, M + 8, y); y += lines.length * 5 + 3;
+    });
+
+    // Negotiate
+    if (r.negotiate_these?.length) {
+      checkSpace(20);
+      y += 4;
+      doc.setFontSize(8); doc.setTextColor(153, 153, 153);
+      doc.setFont('helvetica', 'bold');
+      doc.text('NEGOTIATE THESE', M, y); y += 6;
+      r.negotiate_these.forEach(n => {
+        const wLines = doc.splitTextToSize('"' + n.suggested_wording + '"', CW - 8);
+        checkSpace(10 + wLines.length * 4);
+        doc.setFontSize(9); doc.setTextColor(26, 26, 26);
+        doc.setFont('helvetica', 'bold');
+        doc.text(n.clause, M, y); y += 5;
+        doc.setFont('helvetica', 'italic');
+        doc.setTextColor(85, 85, 85);
+        doc.text(wLines, M + 2, y); y += wLines.length * 4 + 5;
+      });
+    }
+
+    // Disclaimer
+    checkSpace(20);
+    y += 4;
+    doc.setDrawColor(230, 230, 230); doc.line(M, y, W - M, y); y += 5;
+    doc.setFontSize(7); doc.setTextColor(153, 153, 153);
+    doc.setFont('helvetica', 'normal');
+    const discLines = doc.splitTextToSize(r.disclaimer, CW);
+    doc.text(discLines, M, y); y += discLines.length * 3.5 + 4;
+
+    // Footer on every page
+    const pages = doc.getNumberOfPages();
+    for (let i = 1; i <= pages; i++) {
+      doc.setPage(i);
+      doc.setFontSize(7); doc.setTextColor(180, 180, 180);
+      doc.text('LeaseCheck.co.uk — Generated ' + new Date().toLocaleDateString('en-GB'), M, 290);
+      doc.text(`Page ${i} of ${pages}`, W - M - 20, 290);
+    }
+
+    doc.save('LeaseCheck-Report.pdf');
+  }
+</script>
+</body>
+</html>
